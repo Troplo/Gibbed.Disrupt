@@ -45,6 +45,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BigFile.cs" />
+    <Compile Include="BigFileInfo.cs" />
     <Compile Include="Big\CompressionScheme.cs" />
     <Compile Include="Big\Entry.cs" />
     <Compile Include="Big\EntryCompression.cs" />

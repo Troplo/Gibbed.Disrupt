@@ -22,6 +22,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Gibbed.ProjectData;
 
 namespace Gibbed.Disrupt.FileFormats
 {
@@ -182,6 +183,55 @@ namespace Gibbed.Disrupt.FileFormats
                                                                     int bigVersion)
         {
             return project.LoadLists("*.filelist", Hasher, Modifier);
+        }
+    }
+    public interface INameLookup
+    {
+        string this[uint hash] { get; }
+    }
+    
+    public class NfoNameLookup : INameLookup
+    {
+        private readonly Dictionary<uint, string> _map;
+
+        public NfoNameLookup(BigFileInfo nfo)
+        {
+            _map = new Dictionary<uint, string>();
+
+            foreach (var entry in nfo.Entries)
+            {
+                if (string.IsNullOrEmpty(entry.Path))
+                {
+                    continue;
+                }
+
+                var path = entry.Path.Replace("/", "\\").TrimStart('\\');
+                _map[entry.Crc] = path;
+            }
+        }
+
+        public string this[uint hash]
+        {
+            get
+            {
+                string value;
+                return _map.TryGetValue(hash, out value) ? value : null;
+            }
+        }
+    }
+    
+    public class HashListLookupAdapter : INameLookup
+    {
+        private readonly ProjectData.HashList<uint> _inner;
+
+        public HashListLookupAdapter(ProjectData.HashList<uint> inner)
+        {
+            _inner = inner;
+        }
+
+        public string this[uint hash]
+        {
+            get { return _inner[hash]; }
         }
     }
 }

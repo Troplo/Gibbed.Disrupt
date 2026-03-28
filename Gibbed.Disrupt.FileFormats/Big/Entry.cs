@@ -29,6 +29,8 @@ namespace Gibbed.Disrupt.FileFormats.Big
         public uint CompressedSize;
         public long Offset;
         public CompressionScheme CompressionScheme;
+        public string Name;
+        public uint DataHash;
 
         public override string ToString()
         {

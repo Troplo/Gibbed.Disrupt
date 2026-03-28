@@ -88,7 +88,7 @@ namespace Gibbed.Disrupt.Unpack
 
             string fatPath = extras[0];
             string outputPath = extras.Count > 1 ? extras[1] : Path.ChangeExtension(fatPath, null) + "_unpack";
-            string datPath;
+            string datPath, nfoPath;
 
             Regex filter = null;
             if (string.IsNullOrEmpty(filterPattern) == false)
@@ -99,11 +99,25 @@ namespace Gibbed.Disrupt.Unpack
             if (Path.GetExtension(fatPath) == ".dat")
             {
                 datPath = fatPath;
-                fatPath = Path.ChangeExtension(fatPath, ".fat");
+                fatPath = Path.ChangeExtension(datPath, ".fat");
+                nfoPath = Path.ChangeExtension(datPath, ".nfo");
+            }
+            else if (Path.GetExtension(fatPath) == ".nfo")
+            {
+                nfoPath = fatPath;
+                fatPath = Path.ChangeExtension(nfoPath, ".fat");
+                datPath = Path.ChangeExtension(nfoPath, ".dat");
+            }
+            else if (Path.GetExtension(fatPath) == ".dup")
+            {
+                nfoPath = Path.ChangeExtension(fatPath, ".nfo");
+                fatPath = Path.ChangeExtension(nfoPath, ".fat");
+                datPath = Path.ChangeExtension(nfoPath, ".dat");
             }
             else
             {
                 datPath = Path.ChangeExtension(fatPath, ".dat");
+                nfoPath = Path.ChangeExtension(fatPath, ".nfo");
             }
 
             if (verbose == true)
@@ -116,7 +130,7 @@ namespace Gibbed.Disrupt.Unpack
             {
                 Console.WriteLine("Warning: no active project loaded.");
             }
-
+            
             if (verbose == true)
             {
                 Console.WriteLine("Reading FAT...");
@@ -129,8 +143,22 @@ namespace Gibbed.Disrupt.Unpack
                 fat.Deserialize(input);
             }
 
-            var hashes = manager.LoadListsFileNames(fat.Version);
+            INameLookup hashes;
 
+            if (File.Exists(nfoPath))
+            {
+                using (var input = File.OpenRead(nfoPath))
+                {
+                    var nfo = new BigFileInfo();
+                    nfo.Deserialize(input);
+                    hashes = new NfoNameLookup(nfo);
+                }
+            }
+            else
+            {
+                hashes = new HashListLookupAdapter(manager.LoadListsFileNames(fat.Version));
+            }
+            
             using (var input = File.OpenRead(datPath))
             {
                 if (extractFiles == true)
@@ -224,7 +252,7 @@ namespace Gibbed.Disrupt.Unpack
         private static bool GetEntryName(Stream input,
                                          BigFile fat,
                                          Big.Entry entry,
-                                         ProjectData.HashList<uint> hashes,
+                                         INameLookup hashes,
                                          bool extractUnknowns,
                                          bool onlyUnknowns,
                                          out string entryName)
@@ -293,14 +321,19 @@ namespace Gibbed.Disrupt.Unpack
 
             return true;
         }
-
+        
         private static string FilterEntryName(string entryName)
         {
-            entryName = entryName.Replace(@"/", @"\");
-            if (entryName.StartsWith(@"\") == true)
+            char sep = Path.DirectorySeparatorChar;
+            char altSep = '\\';
+
+            entryName = entryName.Replace(altSep, sep);
+
+            if (entryName.StartsWith(sep.ToString()))
             {
                 entryName = entryName.Substring(1);
             }
+
             return entryName;
         }
     }

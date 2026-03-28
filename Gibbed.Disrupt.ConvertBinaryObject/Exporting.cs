@@ -539,7 +539,14 @@ namespace Gibbed.Disrupt.ConvertBinaryObject
                     {
                         writer.WriteAttributeString("hash", kv.Key.ToString("X8"));
                     }
-
+                    
+                    // uint forceHash = FileFormats.Hashing.CRC32.Compute(kv.Key.ToString() + "_force");
+                                        
+                    // if (node.Fields.ContainsKey(forceHash))
+                    // {
+                        // writer.WriteAttributeString("force", "1");
+                    // }
+                    
                     if (fieldDef == null)
                     {
                         writer.WriteAttributeString("type", FieldHandling.GetTypeName(FieldType.BinHex));

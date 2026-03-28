@@ -118,6 +118,14 @@ namespace Gibbed.Disrupt.ConvertBinaryObject
                 var fieldDef = objectDef != null ? objectDef.GetFieldDefinition(fieldNameHash, chain) : null;
                 var data = FieldHandling.Import(fieldDef, fieldType, arrayFieldType, fields.Current);
                 node.Fields.Add(fieldNameHash, data);
+                
+                // if (!string.IsNullOrEmpty(fields.Current.GetAttribute("force", "")))
+                // {
+                    // var forceHash = FileFormats.Hashing.CRC32.Compute(fieldNameHash.ToString() + "_force");
+                    // var fieldDefForce = objectDef?.GetFieldDefinition(forceHash, chain);
+                    // var dataForce = FieldHandling.Import(fieldDefForce, FieldType.Boolean, FieldType.Boolean, fields.Current);
+                    // node.Fields.Add(forceHash, dataForce);
+                // }
             }
 
             var children = nav.Select("object");
